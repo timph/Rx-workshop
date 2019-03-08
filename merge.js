@@ -1,5 +1,6 @@
 const Rx = require('rxjs');
 
+// regular js callback function
 function asyncArray(time, callback) {
 	console.log('init', time);
 	setTimeout(() => {
@@ -8,35 +9,39 @@ function asyncArray(time, callback) {
 }
 
 // Async non-deterministic order of fired event
-Rx.Observable.merge(
+// Organize individual observers to process them altogether
+Rx.Observable.merge( // parallel
 	Rx.Observable.bindCallback(asyncArray)(1000),
 	Rx.Observable.bindCallback(asyncArray)(2000),
 	Rx.Observable.bindCallback(asyncArray)(250),
 	Rx.Observable.bindCallback(asyncArray)(120)
 )
-// Return individual event in fired order
-// Rx.Observable.concat(
+// Return individual event in fixed fired order
+// Rx.Observable.concat( // series
 // 	Rx.Observable.bindCallback(asyncArray)(1000),
 // 	Rx.Observable.bindCallback(asyncArray)(2000),
 // 	Rx.Observable.bindCallback(asyncArray)(250),
 // 	Rx.Observable.bindCallback(asyncArray)(120)
 // )
-// Return single event with order result
-// Rx.Observable.forkJoin(
+// Return single event with fixed order
+// wait for all async finished then collected result into array
+// Rx.Observable.forkJoin( // map
 // 	Rx.Observable.bindCallback(asyncArray)(1000),
 // 	Rx.Observable.bindCallback(asyncArray)(2000),
 // 	Rx.Observable.bindCallback(asyncArray)(250),
 // 	Rx.Observable.bindCallback(asyncArray)(120)
 // )
-	.do( // like listener with side-effect on current stream
+	.do( // like listener/interceptor with side-effect on current stream
+        // but it cannot alter returned data
 		function onNext(data) {
-			console.log('do1 next', data);
+			console.log('do next', data);
 		},
 		function onError(error) {
-			console.log('do1 error', error);
+			console.log('do error', error);
+			throw error;
 		},
 		function onComplete() {
-			console.log('do1 complete');
+			console.log('do complete');
 		}
 	)
 	.subscribe(
@@ -44,7 +49,7 @@ Rx.Observable.merge(
 			console.log('Result: ', data);
 		},
 		function onError(error) {
-			console.log('Error', error);
+			console.log('Subscribe Error', error);
 		},
 		function onComplete() { // will not be fired if Error happens
 			console.log('Complete: I am done!');

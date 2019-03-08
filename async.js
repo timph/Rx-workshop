@@ -9,13 +9,13 @@ function asyncArray(time, callback) {
 
 // Rx.Observable.bindCallback(createArray)(1, 2, 3)
 // Rx.Observable.bindNodeCallback(callMe)('Tim Pham')
-Rx.Observable.from([ 5000, 1000, 250, 125 ])
+Rx.Observable.from([ 3000, 1000, 250, 125 ])
 	// map works with sync call
 	// flatMap with async call
 	.flatMap((time) => {
 		return Rx.Observable.bindCallback(asyncArray)(time)
 	})
-	.subscribe(
+	.subscribe( // execute on any result back
 		function onNext(data) { // only required func
 			console.log('Result: ', data);
 		},
